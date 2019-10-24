@@ -132,6 +132,35 @@ namespace Masarin.IoT.Sensor
         }
     }
 
+    class TelemetryHumidity : IoTHubMessage
+    {
+        public int Humidity { get; }
+
+        public TelemetryHumidity(IoTHubMessageOrigin origin, string timestamp, int humidity) : base(origin, timestamp, "telemetry.humidity")
+        {
+            Humidity = humidity;
+        }
+    }
+
+    class TelemetryPressure : IoTHubMessage
+    {
+        public long Pressure { get; }
+
+        public TelemetryPressure(IoTHubMessageOrigin origin, string timestamp, long pressure) : base(origin, timestamp, "telemetry.pressure")
+        {
+            Pressure = pressure;
+        }
+    }
+
+    class TelemetryHeight : IoTHubMessage
+    {
+        public int Height { get; }
+
+        public TelemetryHeight(IoTHubMessageOrigin origin, string timestamp, int height) : base(origin, timestamp, "telemetry.height")
+        {
+            Height = height;
+        }
+    }
     public interface IMessageQueue
     {
         void PostMessage(IIoTHubMessage message);
@@ -389,6 +418,109 @@ namespace Masarin.IoT.Sensor
             }
         }
     }
+
+    
+
+    class MQTTDecoderSnowHeight : MQTTDecoder
+    {
+        private const string UplinkPort1Topic = "1/payload";
+
+        private readonly IMessageQueue _messageQueue = null;
+
+        public MQTTDecoderSnowHeight(IMessageQueue messageQueue)
+        {
+            _messageQueue = messageQueue;
+        }
+
+        public override void Decode(string timestamp, string device, string topic, byte[] payload)
+        {
+            if (topic == UplinkPort1Topic)
+            {
+                ReadOnlySpan<byte> span = payload;
+                /*
+                    uint8_t   Battery [%]
+                    uint16_t  raw Distance [mm]
+                    uint16_t  Angle [deg]
+                    unit16_t  Vertical distance [mm] 
+                    unit16_t  Snow height [mm]
+                    unit16_t  Laser signal strength [0-400] (lower is better) 
+                    uint8_t   Laser sensor status
+                    int16_t   Temperature [°C]
+                    unit8_t   Humidity [%]
+                    unit32_t  Pressure [Pa]
+                */
+                switch (device)
+                {
+                    //Matfors
+                    case (decValue.ToString("10a52aaa84c35727")):
+                        double latitude = 62.348364;
+                        double longitude = 17.016056;
+                        break;
+                    case (decValue.ToString("10a52aaa84c35728")):
+                        double latitude = 1.348364;
+                        double longitude = 1.016056;
+                        break;
+                    case (decValue.ToString("10a52aaa84c35729")):
+                        double latitude = 1.348364;
+                        double longitude = 1.016056;
+                        break;
+                    case (decValue.ToString("10a52aaa84c35730")):
+                        double latitude = 1.348364;
+                        double longitude = 1.016056;
+                        break;
+                    case (decValue.ToString("10a52aaa84c35731")):
+                        double latitude = 1.348364;
+                        double longitude = 1.016056;
+                        break;
+                    case (decValue.ToString("10a52aaa84c35732")):
+                        double latitude = 1.348364;
+                        double longitude = 1.016056;
+                        break;
+                    case (decValue.ToString("10a52aaa84c35733")):
+                        double latitude = 1.348364;
+                        double longitude = 1.016056;
+                        break;
+                    case (decValue.ToString("10a52aaa84c35734")):
+                        double latitude = 1.348364;
+                        double longitude = 1.016056;
+                        break;
+                    case (decValue.ToString("10a52aaa84c35735")):
+                        double latitude = 1.348364;
+                        double longitude = 1.016056;
+                        break;
+                    case (decValue.ToString("10a52aaa84c35736")):
+                        double latitude = 1.348364;
+                        double longitude = 1.016056;
+                        break;
+                    default:
+                        break;
+                }
+                IoTHubMessageOrigin origin = new IoTHubMessageOrigin(device, latitude, longitude);
+
+                int battery = payload[0];  
+                IoTHubMessageOrigin originWoPosition = new IoTHubMessageOrigin(device);
+                _messageQueue.PostMessage(new SensorStatusMessage(originWoPosition, timestamp, 1100+battery*5));
+
+                int snowheight = payload[7] << 8 || payload[8];
+                IoTHubMessageOrigin originWoDevice = new IoTHubMessageOrigin(latitude / 10000000.0, longitude / 10000000.0);
+                _messageQueue.PostMessage(new TelemetryHeight(originWoDevice, timestamp, snowheight));
+
+                int temperature = ((payload[12] << 8 || payload[13]) - 100) / 10;
+                IoTHubMessageOrigin originWoDevice = new IoTHubMessageOrigin(latitude / 10000000.0, longitude / 10000000.0);
+                _messageQueue.PostMessage(new TelemetryTemperature(originWoDevice, timestamp, temperature));
+
+                int humidity = payload[14];
+                IoTHubMessageOrigin originWoDevice = new IoTHubMessageOrigin(latitude / 10000000.0, longitude / 10000000.0);
+                _messageQueue.PostMessage(new TelemetryHumidity(originWoDevice, timestamp, humidity));
+
+                int pressure = (payload[15] << 24 || payload[16] << 16 || payload[17] << 8 || payload[18]);
+                IoTHubMessageOrigin originWoDevice = new IoTHubMessageOrigin(latitude / 10000000.0, longitude / 10000000.0);
+                _messageQueue.PostMessage(new TelemetryPressure(originWoDevice, timestamp, pressure));
+            }
+        }
+    }
+
+
 
     class MQTTNullDecoder : MQTTDecoder
     {
