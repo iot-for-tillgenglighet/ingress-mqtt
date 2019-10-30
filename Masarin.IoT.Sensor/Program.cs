@@ -448,73 +448,96 @@ namespace Masarin.IoT.Sensor
                     int16_t   Temperature [°C]
                     unit8_t   Humidity [%]
                     unit32_t  Pressure [Pa]
+
+                    1199411787624306471
+                    1199411787624306472
+                    1199411787624306473
+                    1199411787624306480
+                    1199411787624306481
+                    1199411787624306482
+                    1199411787624306483
+                    1199411787624306484
+                    1199411787624306485
+                    1199411787624306486
                 */
-                switch (device)
+                double latitude = 1.348364;
+                double longitude = 1.016056;
+
+               
+
+                int.Parse("0x10a52aaa84c35727", System.Globalization.NumberStyles.HexNumber);
+                if (device == "1199411787624306471")
                 {
-                    //Matfors
-                    case (decValue.ToString("10a52aaa84c35727")):
-                        double latitude = 62.348364;
-                        double longitude = 17.016056;
-                        break;
-                    case (decValue.ToString("10a52aaa84c35728")):
-                        double latitude = 1.348364;
-                        double longitude = 1.016056;
-                        break;
-                    case (decValue.ToString("10a52aaa84c35729")):
-                        double latitude = 1.348364;
-                        double longitude = 1.016056;
-                        break;
-                    case (decValue.ToString("10a52aaa84c35730")):
-                        double latitude = 1.348364;
-                        double longitude = 1.016056;
-                        break;
-                    case (decValue.ToString("10a52aaa84c35731")):
-                        double latitude = 1.348364;
-                        double longitude = 1.016056;
-                        break;
-                    case (decValue.ToString("10a52aaa84c35732")):
-                        double latitude = 1.348364;
-                        double longitude = 1.016056;
-                        break;
-                    case (decValue.ToString("10a52aaa84c35733")):
-                        double latitude = 1.348364;
-                        double longitude = 1.016056;
-                        break;
-                    case (decValue.ToString("10a52aaa84c35734")):
-                        double latitude = 1.348364;
-                        double longitude = 1.016056;
-                        break;
-                    case (decValue.ToString("10a52aaa84c35735")):
-                        double latitude = 1.348364;
-                        double longitude = 1.016056;
-                        break;
-                    case (decValue.ToString("10a52aaa84c35736")):
-                        double latitude = 1.348364;
-                        double longitude = 1.016056;
-                        break;
-                    default:
-                        break;
+                    latitude = 62.348364;
+                    longitude = 17.016056;
                 }
+                else if (device == "1199411787624306472")
+                {
+                    latitude = 1.348364;
+                    longitude = 1.016056;
+                }
+                else if (device == "1199411787624306473")
+                {
+                    latitude = 1.348364;
+                    longitude = 1.016056;
+                }
+                else if (device == "1199411787624306480")
+                {
+                    latitude = 1.348364;
+                    longitude = 1.016056;
+                }
+                else if (device == "1199411787624306481")
+                {
+                    latitude = 1.348364;
+                    longitude = 1.016056;
+                }
+                else if (device == "1199411787624306482")
+                {
+                    latitude = 1.348364;
+                    longitude = 1.016056;
+                }
+                else if (device == "1199411787624306483")
+                {
+                    latitude = 1.348364;
+                    longitude = 1.016056;
+                }
+                else if (device == "1199411787624306484")
+                {
+                    latitude = 1.348364;
+                    longitude = 1.016056;
+                }
+                else if (device == "1199411787624306485")
+                {
+                    latitude = 1.348364;
+                    longitude = 1.016056;
+                }
+                else if (device == "1199411787624306486")
+                {
+                    latitude = 1.348364;
+                    longitude = 1.016056;
+                }
+
+
                 IoTHubMessageOrigin origin = new IoTHubMessageOrigin(device, latitude, longitude);
 
                 int battery = payload[0];  
                 IoTHubMessageOrigin originWoPosition = new IoTHubMessageOrigin(device);
                 _messageQueue.PostMessage(new SensorStatusMessage(originWoPosition, timestamp, 1100+battery*5));
 
-                int snowheight = payload[7] << 8 || payload[8];
+                int snowheight = payload[7] << 8 + payload[8];
                 IoTHubMessageOrigin originWoDevice = new IoTHubMessageOrigin(latitude / 10000000.0, longitude / 10000000.0);
                 _messageQueue.PostMessage(new TelemetryHeight(originWoDevice, timestamp, snowheight));
 
-                int temperature = ((payload[12] << 8 || payload[13]) - 100) / 10;
-                IoTHubMessageOrigin originWoDevice = new IoTHubMessageOrigin(latitude / 10000000.0, longitude / 10000000.0);
+                int temperature = ((payload[12] << 8 + payload[13]) - 100) / 10;
+                originWoDevice = new IoTHubMessageOrigin(latitude / 10000000.0, longitude / 10000000.0);
                 _messageQueue.PostMessage(new TelemetryTemperature(originWoDevice, timestamp, temperature));
 
                 int humidity = payload[14];
-                IoTHubMessageOrigin originWoDevice = new IoTHubMessageOrigin(latitude / 10000000.0, longitude / 10000000.0);
+                originWoDevice = new IoTHubMessageOrigin(latitude / 10000000.0, longitude / 10000000.0);
                 _messageQueue.PostMessage(new TelemetryHumidity(originWoDevice, timestamp, humidity));
 
-                int pressure = (payload[15] << 24 || payload[16] << 16 || payload[17] << 8 || payload[18]);
-                IoTHubMessageOrigin originWoDevice = new IoTHubMessageOrigin(latitude / 10000000.0, longitude / 10000000.0);
+                int pressure = (payload[15] << 24 + payload[16] << 16 + payload[17] << 8 + payload[18]);
+                originWoDevice = new IoTHubMessageOrigin(latitude / 10000000.0, longitude / 10000000.0);
                 _messageQueue.PostMessage(new TelemetryPressure(originWoDevice, timestamp, pressure));
             }
         }
