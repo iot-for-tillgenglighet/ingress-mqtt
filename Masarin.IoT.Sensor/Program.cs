@@ -449,6 +449,7 @@ namespace Masarin.IoT.Sensor
                     unit8_t   Humidity [%]
                     unit32_t  Pressure [Pa]
 
+                    DEVEUI:s
                     1199411787624306471
                     1199411787624306472
                     1199411787624306473
@@ -465,7 +466,7 @@ namespace Masarin.IoT.Sensor
 
                
 
-                int.Parse("0x10a52aaa84c35727", System.Globalization.NumberStyles.HexNumber);
+  
                 if (device == "1199411787624306471")
                 {
                     latitude = 62.348364;
@@ -567,6 +568,7 @@ namespace Masarin.IoT.Sensor
         private readonly MQTTDecoderAurorasWS _weatherDecoder;
         private readonly MQTTDecoderWinterCycle _bicycleDecoder;
         private readonly MQTTDecoderIcomit _avlDecoder;
+        private readonly MQTTDecoderSnowHeight _snowHeightDecoder;
         private readonly MQTTNullDecoder _nullDecoder;
 
         public MQTTDecoderRegistry(IMessageQueue messageQueue)
@@ -574,6 +576,7 @@ namespace Masarin.IoT.Sensor
             _bicycleDecoder = new MQTTDecoderWinterCycle(messageQueue);
             _avlDecoder = new MQTTDecoderIcomit(messageQueue);
             _weatherDecoder = new MQTTDecoderAurorasWS(messageQueue);
+            _snowHeightDecoder = new MQTTDecoderSnowHeight(messageQueue);
             _nullDecoder = new MQTTNullDecoder();
         }
 
@@ -590,6 +593,10 @@ namespace Masarin.IoT.Sensor
             else if (node == "icomit")
             {
                 return _avlDecoder;
+            }
+            else if (node.StartsWith("11994117876243064"))
+            {
+                return _snowHeightDecoder;
             }
             else
             {
