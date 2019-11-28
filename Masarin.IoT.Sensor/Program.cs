@@ -526,20 +526,20 @@ namespace Masarin.IoT.Sensor
                 IoTHubMessageOrigin originWoPosition = new IoTHubMessageOrigin(device);
                 _messageQueue.PostMessage(new SensorStatusMessage(originWoPosition, timestamp, 1100+battery*5));
                 
-                int snowdepth = payload[7] << 8 + payload[8];
-                IoTHubMessageOrigin originWoDevice = new IoTHubMessageOrigin(latitude / 10000000.0, longitude / 10000000.0);
+                int snowdepth = payload[7] << 8 | payload[8];
+                IoTHubMessageOrigin originWoDevice = new IoTHubMessageOrigin(latitude, longitude);
                 _messageQueue.PostMessage(new TelemetrySnowdepth(originWoDevice, timestamp, snowdepth));
 
-                int temperature = ((payload[12] << 8 + payload[13]) - 100) / 10;
-                originWoDevice = new IoTHubMessageOrigin(latitude / 10000000.0, longitude / 10000000.0);
+                int temperature = ((payload[12] << 8 | payload[13]) - 100) / 10;
+                originWoDevice = new IoTHubMessageOrigin(latitude, longitude);
                 _messageQueue.PostMessage(new TelemetryTemperature(originWoDevice, timestamp, temperature));
 
                 int humidity = payload[14];
-                originWoDevice = new IoTHubMessageOrigin(latitude / 10000000.0, longitude / 10000000.0);
+                originWoDevice = new IoTHubMessageOrigin(latitude, longitude);
                 _messageQueue.PostMessage(new TelemetryHumidity(originWoDevice, timestamp, humidity));
 
-                int pressure = (payload[15] << 24 + payload[16] << 16 + payload[17] << 8 + payload[18]);
-                originWoDevice = new IoTHubMessageOrigin(latitude / 10000000.0, longitude / 10000000.0);
+                int pressure = (payload[15] << 24 | payload[16] << 16 | payload[17] << 8 | payload[18]);
+                originWoDevice = new IoTHubMessageOrigin(latitude, longitude);
                 _messageQueue.PostMessage(new TelemetryPressure(originWoDevice, timestamp, pressure));
             }
         }
