@@ -1,6 +1,11 @@
 ﻿
 using MQTTnet;
 using MQTTnet.Client;
+using MQTTnet.Client.Connecting;
+using MQTTnet.Client.Disconnecting;
+using MQTTnet.Client.Options;
+using MQTTnet.Client.Receiving;
+using MQTTnet.Diagnostics;
 using Newtonsoft.Json;
 using Newtonsoft.Json.Serialization;
 using RabbitMQ.Client;
@@ -650,22 +655,28 @@ namespace Masarin.IoT.Sensor
 
             var builder = new MqttClientOptionsBuilder()
                 .WithClientId(Guid.NewGuid().ToString())
-                .WithTcpServer(mqttHost);
+                .WithTcpServer(mqttHost, 1883);
 
             if (mqttUsername != null)
             {
                 builder = builder.WithCredentials(mqttUsername, mqttPassword);
+                builder = builder.WithTls(new MqttClientOptionsBuilderTlsParameters {
+                    UseTls = true,
+                    AllowUntrustedCertificates = true,
+                    IgnoreCertificateChainErrors = true,
+                    IgnoreCertificateRevocationErrors = true
+                });
             }
 
             var options = builder.Build();
 
-            client.Connected += async (s, e) =>
+            client.UseConnectedHandler( async (e) =>
             {
                 Console.WriteLine("Connected! Subscribing to root topic ...");
                 await client.SubscribeAsync(new TopicFilterBuilder().WithTopic("#").Build());
-            };
+            });
 
-            client.ApplicationMessageReceived += async (sender, e) =>
+            client.UseApplicationMessageReceivedHandler( e =>
             {
                 try
                 {
@@ -675,9 +686,9 @@ namespace Masarin.IoT.Sensor
                 {
                     Console.WriteLine($"Exception caught when calling ParseMessagePayload: {ex.Message}");
                 }
-            };
+            });
 
-            client.Disconnected += async (sender, e) =>
+            client.UseDisconnectedHandler( async (e) =>
             {
                 Console.WriteLine("### MQTT Server dropped connection. Sleeping and reconnecting ... ###");
                 await Task.Delay(TimeSpan.FromSeconds(5));
@@ -694,10 +705,10 @@ namespace Masarin.IoT.Sensor
                     itIsNotTimeToShutDown = false;
                     terminationEvent.Set();
                 }
-            };
+            });
 
             Console.WriteLine($"Connecting to MQTT host {mqttHost} as {mqttUsername} ...");
-            client.ConnectAsync(options);
+            client.ConnectAsync(options, CancellationToken.None);
 
             while (itIsNotTimeToShutDown)
             {
