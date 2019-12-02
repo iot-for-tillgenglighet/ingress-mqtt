@@ -1,4 +1,4 @@
-﻿
+﻿using Microsoft.Extensions.Logging;
 using MQTTnet;
 using MQTTnet.Client;
 using MQTTnet.Client.Connecting;
@@ -10,161 +10,15 @@ using Newtonsoft.Json;
 using Newtonsoft.Json.Serialization;
 using RabbitMQ.Client;
 using System;
-using System.Buffers.Binary;
-using System.Collections.Generic;
 using System.Text;
 using System.Threading;
 using System.Threading.Tasks;
 
 namespace Masarin.IoT.Sensor
 {
-    public interface IIoTHubMessage
+	public interface IIoTHubMessage
     {
         string Topic { get; }
-    }
-
-    class IoTHubMessageOrigin
-    {
-        public string Device { get; }
-        public double? Latitude { get; }
-        public double? Longitude { get; }
-
-        public IoTHubMessageOrigin(string device)
-        {
-            Device = device;
-        }
-
-        public IoTHubMessageOrigin(double latitude, double longitude)
-        {
-            Latitude = latitude;
-            Longitude = longitude;
-        }
-
-        public IoTHubMessageOrigin(string device, double latitude, double longitude)
-        {
-            Device = device;
-            Latitude = latitude;
-            Longitude = longitude;
-        }
-    }
-
-    class IoTHubMessage : IIoTHubMessage
-    {
-        [JsonIgnore]
-        public string Topic { get; }
-
-        public IoTHubMessageOrigin Origin { get; }
-        public string Timestamp { get; }
-
-        public IoTHubMessage(IoTHubMessageOrigin origin, string timestamp, string topic)
-        {
-            Origin = origin;
-            Timestamp = timestamp;
-            Topic = topic;
-        }
-    }
-
-    class SensorStatusMessage : IoTHubMessage
-    {
-        public double Volt { get; }
-
-        public SensorStatusMessage(IoTHubMessageOrigin origin, string timestamp, double volts) : base(origin, timestamp, "sensor.status")
-        {
-            Volt = volts;
-        }
-    }
-
-    class VehicleMovementMessage : IoTHubMessage
-    {
-        public double Heading { get; }
-        public double Speed { get; }
-        public string Type { get; set; }
-
-        public VehicleMovementMessage(IoTHubMessageOrigin origin, string timestamp, double heading, double speed) : base(origin, timestamp, "vehicle.movement")
-        {
-            Heading = heading;
-            Speed = speed;
-        }
-    }
-
-    class BicycleMovementMessage : VehicleMovementMessage
-    {
-        public BicycleMovementMessage(IoTHubMessageOrigin origin, string timestamp, double heading, double speed) : base(origin, timestamp, heading, speed)
-        {
-            Type = "bicycle";
-        }
-    }
-
-    class CarMovementMessage : VehicleMovementMessage
-    {
-        public CarMovementMessage(IoTHubMessageOrigin origin, string timestamp, double heading, double speed) : base(origin, timestamp, heading, speed)
-        {
-            Type = "car";
-        }
-    }
-
-    class TelemetryLight : IoTHubMessage
-    {
-        public double Lux { get; }
-        public double UvIndex { get; }
-
-        public TelemetryLight(IoTHubMessageOrigin origin, string timestamp, double lux, double uvIndex) : base(origin, timestamp, "telemetry.light")
-        {
-            Lux = Math.Round(lux, 2);
-            UvIndex = Math.Round(uvIndex, 2);
-        }
-    }
-
-    class TelemetryTemperature : IoTHubMessage
-    {
-        public double Temp { get; }
-
-        public TelemetryTemperature(IoTHubMessageOrigin origin, string timestamp, double temperature) : base(origin, timestamp, "telemetry.temperature")
-        {
-            Temp = temperature;
-        }
-    }
-
-    class TelemetryWind : IoTHubMessage
-    {
-        public double Speed { get; }
-        public int Direction { get; }
-
-        public TelemetryWind(IoTHubMessageOrigin origin, string timestamp, double speed, int direction) : base(origin, timestamp, "telemetry.wind")
-        {
-            Speed = speed;
-            Direction = direction;
-        }
-    }
-
-    class TelemetryHumidity : IoTHubMessage
-    {
-        public int Humidity { get; }
-
-        public TelemetryHumidity(IoTHubMessageOrigin origin, string timestamp, int humidity) : base(origin, timestamp, "telemetry.humidity")
-        {
-            Humidity = humidity;
-        }
-    }
-
-    class TelemetryPressure : IoTHubMessage
-    {
-        public long Pressure { get; }
-
-        public TelemetryPressure(IoTHubMessageOrigin origin, string timestamp, long pressure) : base(origin, timestamp, "telemetry.pressure")
-        {
-            Pressure = pressure;
-        }
-    }
-
-    class TelemetrySnowdepth : IoTHubMessage
-    {
-        public int Snowdepth { get; }
-
-        public TelemetrySnowdepth(IoTHubMessageOrigin origin, string timestamp, int snowdepth) : base(origin, timestamp, "telemetry.Snowdepth")
-        {
-            Snowdepth = snowdepth;
-        }
     }
     public interface IMessageQueue
     {
@@ -229,389 +83,6 @@ namespace Masarin.IoT.Sensor
         }
     }
 
-    interface IMQTTDecoder
-    {
-        void Decode(string timestamp, string device, string topic, byte[] payload);
-    }
-
-    abstract class MQTTDecoder : IMQTTDecoder
-    {
-
-        public MQTTDecoder()
-        {
-        }
-
-        public static string PayloadToHex(byte[] payload)
-        {
-            StringBuilder hex = new StringBuilder(payload.Length * 2);
-            foreach (byte b in payload)
-                hex.AppendFormat("{0:x2}", b);
-            return hex.ToString();
-        }
-
-        abstract public void Decode(string timestamp, string device, string topic, byte[] payload);
-    }
-
-    class MQTTDecoderAurorasWS : MQTTDecoder
-    {
-        private const string WeatherTopic = "6/payload";
-
-        private readonly IMessageQueue _messageQueue = null;
-
-        public MQTTDecoderAurorasWS(IMessageQueue messageQueue)
-        {
-            _messageQueue = messageQueue;
-        }
-
-        public override void Decode(string timestamp, string device, string topic, byte[] payload)
-        {
-            if (payload.Length != 19 || topic != WeatherTopic)
-            {
-                return;
-            }
-
-            ReadOnlySpan<byte> span = payload;
-
-            // TODO: Denna hårdkodning gäller endast för den väderstation som sitter på MIUN, vi kommer
-            //       att behöva hantera sensorposition på ett intelligentare sätt framöver när de blir fler.
-            double latitude = 62.391944;
-            double longitude = 17.285917;
-            IoTHubMessageOrigin origin = new IoTHubMessageOrigin(device, latitude, longitude);
-
-            double millivolts = BinaryPrimitives.ReadUInt16BigEndian(span.Slice(start: 17, length: 2));
-            _messageQueue.PostMessage(new SensorStatusMessage(origin, timestamp, millivolts / 1000.0));
-
-            double temperature = BinaryPrimitives.ReadUInt16BigEndian(span.Slice(start: 0, length: 2));
-            _messageQueue.PostMessage(new TelemetryTemperature(origin, timestamp, (temperature - 4000) / 100.0));
-
-            const double kmphToMpS = 1000.0 / 60.0 / 60.0;
-            double windspeed = BinaryPrimitives.ReadUInt16BigEndian(span.Slice(start: 9, length: 2));
-            windspeed = Math.Round(windspeed * kmphToMpS / 100.0, 2);
-
-            int winddirection = BinaryPrimitives.ReadUInt16BigEndian(span.Slice(start: 11, length: 2));
-            _messageQueue.PostMessage(new TelemetryWind(origin, timestamp, windspeed, winddirection));
-
-            double lux = BinaryPrimitives.ReadUInt16BigEndian(span.Slice(start: 13, length: 2));
-            double uvidx = BinaryPrimitives.ReadUInt16BigEndian(span.Slice(start: 15, length: 2));
-            _messageQueue.PostMessage(new TelemetryLight(origin, timestamp, lux * 10, uvidx / 100.0));
-        }
-    }
-
-    class MQTTDecoderWinterCycle : MQTTDecoder
-    {
-        private const string UplinkPort1Topic = "1/payload";
-
-        private readonly IMessageQueue _messageQueue = null;
-
-        public MQTTDecoderWinterCycle(IMessageQueue messageQueue)
-        {
-            _messageQueue = messageQueue;
-        }
-
-        public override void Decode(string timestamp, string device, string topic, byte[] payload)
-        {
-            if (topic == UplinkPort1Topic)
-            {
-                ReadOnlySpan<byte> span = payload;
-
-                double millivolts = payload[10];
-                IoTHubMessageOrigin originWoPosition = new IoTHubMessageOrigin(device);
-                _messageQueue.PostMessage(new SensorStatusMessage(originWoPosition, timestamp, millivolts * 0.025));
-
-                double latitude = BinaryPrimitives.ReadInt32LittleEndian(span.Slice(start: 0, length: 4));
-                double longitude = BinaryPrimitives.ReadInt32LittleEndian(span.Slice(start: 4, length: 4));
-                bool inTrip = (payload[8] & 0x80) != 0;
-                bool lastFixFailed = (payload[8] & 0x40) != 0;
-                double heading = (payload[8] & 0x3F); // Maska bort de första två bitarna för att få heading
-                double speed = payload[9];
-
-                // TODO: Bestäm vad som är ett bra filter här egentligen ...
-                if (speed > 0)
-                {
-                    IoTHubMessageOrigin originWoDevice = new IoTHubMessageOrigin(latitude / 10000000.0, longitude / 10000000.0);
-                    _messageQueue.PostMessage(new BicycleMovementMessage(originWoDevice, timestamp, heading * 5.625, speed));
-                }
-            }
-        }
-    }
-
-    class MQTTDecoderIcomit : MQTTDecoder
-    {
-        class AVLProperty
-        {
-            public string ID { get; set; }
-            public long Value { get; set; }
-        }
-
-        class TektonikaAVLData
-        {
-            public string IMEI { get; set; }
-            public string TimeStamp { get; set; }
-            public string Longitude { get; set; }
-            public string Latitude { get; set; }
-            public string Angle { get; set; }
-            public string Speed { get; set; }
-
-            public List<AVLProperty> OneByteIO { get; set; }
-            public List<AVLProperty> TwoByteIO { get; set; }
-            public List<AVLProperty> FourByteIO { get; set; }
-
-            public bool IsIgnitionOn()
-            {
-                AVLProperty p = OneByteIO.Find(x => x.ID == "239");
-                return (p != null && p.Value == 1);
-            }
-
-            public CarMovementMessage ToCarMovementMessage()
-            {
-                if (IsIgnitionOn())
-                {
-                    double lat, lon, heading, velocity;
-                    Double.TryParse(Latitude, out lat);
-                    Double.TryParse(Longitude, out lon);
-                    Double.TryParse(Angle, out heading);
-                    Double.TryParse(Speed, out velocity);
-
-                    DateTime dt = new DateTime(1970, 1, 1, 0, 0, 0, DateTimeKind.Utc);
-                    dt = dt.AddMilliseconds(long.Parse(TimeStamp));
-
-                    IoTHubMessageOrigin origin = new IoTHubMessageOrigin(lat / 10000000.0, lon / 10000000.0);
-                    return new CarMovementMessage(origin, dt.ToString("yyyy-MM-ddTHH:mm:ssZ"), heading, velocity);
-                }
-
-                return null;
-            }
-
-            public SensorStatusMessage ToStatusMessage()
-            {
-                AVLProperty p = TwoByteIO.Find(x => x.ID == "67");
-                if (p != null)
-                {
-                    double lat, lon;
-                    Double.TryParse(Latitude, out lat);
-                    Double.TryParse(Longitude, out lon);
-
-                    DateTime dt = new DateTime(1970, 1, 1, 0, 0, 0, DateTimeKind.Utc);
-                    dt = dt.AddMilliseconds(long.Parse(TimeStamp));
-
-                    IoTHubMessageOrigin origin = new IoTHubMessageOrigin($"icom-{IMEI}", lat / 10000000.0, lon / 10000000.0);
-                    return new SensorStatusMessage(origin, dt.ToString("yyyy-MM-ddTHH:mm:ssZ"), p.Value / 1000.0);
-                }
-
-                return null;
-            }
-
-            public TektonikaAVLData() {}
-        }
-
-        private readonly IMessageQueue _messageQueue = null;
-
-        public MQTTDecoderIcomit(IMessageQueue messageQueue)
-        {
-            _messageQueue = messageQueue;
-        }
-
-        public override void Decode(string timestamp, string device, string topic, byte[] payload)
-        {
-            if (topic == "test")
-            {
-                string json = Encoding.UTF8.GetString(payload);
-
-                TektonikaAVLData data = JsonConvert.DeserializeObject<TektonikaAVLData>(json);
-                _messageQueue.PostMessage(data.ToStatusMessage());
-                _messageQueue.PostMessage(data.ToCarMovementMessage());
-            }
-        }
-    }
-
-    
-
-    class MQTTDecoderSnowdepth : MQTTDecoder
-    {
-        private const string UplinkPort1Topic = "1/payload";
-
-        private readonly IMessageQueue _messageQueue = null;
-
-        public MQTTDecoderSnowdepth(IMessageQueue messageQueue)
-        {
-            _messageQueue = messageQueue;
-        }
-
-        public override void Decode(string timestamp, string device, string topic, byte[] payload)
-        {
-            if (topic == UplinkPort1Topic)
-            {
-                ReadOnlySpan<byte> span = payload;
-                /*
-                    uint8_t   Battery [%]
-                    uint16_t  raw Distance [mm]
-                    uint16_t  Angle [deg]
-                    unit16_t  Vertical distance [mm] 
-                    unit16_t  Snow depth [mm]
-                    unit16_t  Laser signal strength [0-400] (lower is better) 
-                    uint8_t   Laser sensor status
-                    int16_t   Temperature [°C]F
-                    unit8_t   Humidity [%]
-                    unit32_t  Pressure [Pa]
-
-                    DEVEUI:s
-                    1199411787624306471 Stöde 62.4081681,16.5687632
-                    1199411787624306472 Matfors 62.348364,17.016056
-                    1199411787624306473 Njurunda 62.310744,17.3533887
-                    1199411787624306480 Sundsvall 62.392035,17.2843186
-                    1199411787624306481 Alnö 62.423001,17.4263873
-                    1199411787624306482 Sidsjö 62.37479,17.2680887
-                    1199411787624306483 Granloholm 62.4104911,17.264459
-                    1199411787624306484 Kovland 62.467477,17.1440723
-                    1199411787624306485 Fagerdalsparken 62.381802,17.2817077
-                    1199411787624306486 Finsta 62.462363,17.3451197
-                */
-                double latitude = 1.348364;
-                double longitude = 1.016056;
-
-               
-
-  
-                if (device == "1199411787624306471")
-                {
-                    latitude = 62.4081681;
-                    longitude = 16.5687632;
-                }
-                else if (device == "1199411787624306472")
-                {
-                    latitude = 62.348364;
-                    longitude = 17.016056;
-                }
-                else if (device == "1199411787624306473")
-                {
-                    latitude = 62.310744;
-                    longitude = 17.3533887;
-                }
-                else if (device == "1199411787624306480")
-                {
-                    latitude = 62.392035;
-                    longitude = 17.2843186;
-                }
-                else if (device == "1199411787624306481")
-                {
-                    latitude = 62.423001;
-                    longitude = 17.4263873;
-                }
-                else if (device == "1199411787624306483")
-                {
-                    latitude = 62.4104911;
-                    longitude = 17.264459;
-                }
-                else if (device == "1199411787624306482")
-                {
-                    latitude = 62.37479;
-                    longitude = 17.2680887;
-                }
-                else if (device == "1199411787624306484")
-                {
-                    latitude = 62.467477;
-                    longitude = 17.1440723;
-                }
-                else if (device == "1199411787624306485")
-                {
-                    latitude = 62.381802;
-                    longitude = 17.2817077;
-                }
-                else if (device == "1199411787624306486")
-                {
-                    latitude = 62.462363;
-                    longitude = 17.3451197;
-                }
-                
-
-
-                IoTHubMessageOrigin origin = new IoTHubMessageOrigin(device, latitude, longitude);
-
-                int battery = payload[0];  
-                IoTHubMessageOrigin originWoPosition = new IoTHubMessageOrigin(device);
-                _messageQueue.PostMessage(new SensorStatusMessage(originWoPosition, timestamp, 1100+battery*5));
-                
-                int snowdepth = payload[7] << 8 | payload[8];
-                IoTHubMessageOrigin originWoDevice = new IoTHubMessageOrigin(latitude, longitude);
-                _messageQueue.PostMessage(new TelemetrySnowdepth(originWoDevice, timestamp, snowdepth));
-
-                int temperature = ((payload[12] << 8 | payload[13]) - 100) / 10;
-                originWoDevice = new IoTHubMessageOrigin(latitude, longitude);
-                _messageQueue.PostMessage(new TelemetryTemperature(originWoDevice, timestamp, temperature));
-
-                int humidity = payload[14];
-                originWoDevice = new IoTHubMessageOrigin(latitude, longitude);
-                _messageQueue.PostMessage(new TelemetryHumidity(originWoDevice, timestamp, humidity));
-
-                int pressure = (payload[15] << 24 | payload[16] << 16 | payload[17] << 8 | payload[18]);
-                originWoDevice = new IoTHubMessageOrigin(latitude, longitude);
-                _messageQueue.PostMessage(new TelemetryPressure(originWoDevice, timestamp, pressure));
-            }
-        }
-    }
-
-
-
-    class MQTTNullDecoder : MQTTDecoder
-    {
-        public MQTTNullDecoder()
-        {
-        }
-
-        public override void Decode(string timestamp, string device, string topic, byte[] payload)
-        {
-            Console.WriteLine("WARNING: Received data that could not be handled by any decoder ...");
-        }
-    }
-
-    interface IMQTTDecoderRegistry
-    {
-        IMQTTDecoder GetDecoderForNode(string node, string path);
-    }
-
-    class MQTTDecoderRegistry : IMQTTDecoderRegistry
-    {
-        private readonly MQTTDecoderAurorasWS _weatherDecoder;
-        private readonly MQTTDecoderWinterCycle _bicycleDecoder;
-        private readonly MQTTDecoderIcomit _avlDecoder;
-        private readonly MQTTDecoderSnowdepth _snowdepthDecoder;
-        private readonly MQTTNullDecoder _nullDecoder;
-
-        public MQTTDecoderRegistry(IMessageQueue messageQueue)
-        {
-            _bicycleDecoder = new MQTTDecoderWinterCycle(messageQueue);
-            _avlDecoder = new MQTTDecoderIcomit(messageQueue);
-            _weatherDecoder = new MQTTDecoderAurorasWS(messageQueue);
-            _snowdepthDecoder = new MQTTDecoderSnowdepth(messageQueue);
-            _nullDecoder = new MQTTNullDecoder();
-        }
-
-        public IMQTTDecoder GetDecoderForNode(string node, string path)
-        {
-            if (node.StartsWith("360295"))
-            {
-                return _weatherDecoder;
-            }
-            else if (node.StartsWith("812106"))
-            {
-                return _bicycleDecoder;
-            }
-            else if (node == "icomit")
-            {
-                return _avlDecoder;
-            }
-            else if (node.StartsWith("11994117876243064"))
-            {
-                return _snowdepthDecoder;
-            }
-            else
-            {
-                return _nullDecoder;
-            }
-        }
-
-    }
-
     class Program
     {
         // Create a termination event that we can use to signal that the app should shut down
@@ -647,30 +118,27 @@ namespace Masarin.IoT.Sensor
             //TestParseData(decoders);
 
             var mqttFactory = new MqttFactory();
-            var client = mqttFactory.CreateMqttClient();
 
             var mqttUsername = Environment.GetEnvironmentVariable("MQTT_USER");
             var mqttPassword = Environment.GetEnvironmentVariable("MQTT_PASSWORD");
             var mqttHost = Environment.GetEnvironmentVariable("MQTT_HOST");
 
-            var builder = new MqttClientOptionsBuilder()
-                .WithClientId(Guid.NewGuid().ToString())
-                .WithTcpServer(mqttHost, 1883);
+			var options = new MqttClientOptionsBuilder()
+				.WithTcpServer(mqttHost, 1883)
+				.WithTls(new MqttClientOptionsBuilderTlsParameters
+				{
+					UseTls = true,
+					AllowUntrustedCertificates = true,
+					IgnoreCertificateChainErrors = true,
+					IgnoreCertificateRevocationErrors = true
+				})
+				.WithCredentials(mqttUsername, mqttPassword)
+				.WithClientId(Guid.NewGuid().ToString())
+				.Build();
 
-            if (mqttUsername != null)
-            {
-                builder = builder.WithCredentials(mqttUsername, mqttPassword);
-                builder = builder.WithTls(new MqttClientOptionsBuilderTlsParameters {
-                    UseTls = true,
-                    AllowUntrustedCertificates = true,
-                    IgnoreCertificateChainErrors = true,
-                    IgnoreCertificateRevocationErrors = true
-                });
-            }
+			var client = mqttFactory.CreateMqttClient();
 
-            var options = builder.Build();
-
-            client.UseConnectedHandler( async (e) =>
+			client.UseConnectedHandler( async (e) =>
             {
                 Console.WriteLine("Connected! Subscribing to root topic ...");
                 await client.SubscribeAsync(new TopicFilterBuilder().WithTopic("#").Build());
@@ -691,6 +159,8 @@ namespace Masarin.IoT.Sensor
             client.UseDisconnectedHandler( async (e) =>
             {
                 Console.WriteLine("### MQTT Server dropped connection. Sleeping and reconnecting ... ###");
+				Console.WriteLine(e.Exception);
+				Console.WriteLine(e.AuthenticateResult);
                 await Task.Delay(TimeSpan.FromSeconds(5));
 
                 try
