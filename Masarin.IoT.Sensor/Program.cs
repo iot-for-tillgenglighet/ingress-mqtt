@@ -1,5 +1,4 @@
-﻿using Microsoft.Extensions.Logging;
-using MQTTnet;
+﻿using MQTTnet;
 using MQTTnet.Client;
 using MQTTnet.Client.Connecting;
 using MQTTnet.Client.Disconnecting;
