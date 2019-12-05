@@ -121,19 +121,22 @@ namespace Masarin.IoT.Sensor
             var mqttUsername = Environment.GetEnvironmentVariable("MQTT_USER");
             var mqttPassword = Environment.GetEnvironmentVariable("MQTT_PASSWORD");
             var mqttHost = Environment.GetEnvironmentVariable("MQTT_HOST");
+			var mqttPort = Convert.ToInt32(Environment.GetEnvironmentVariable("MQTT_PORT"));
+
 
 			var options = new MqttClientOptionsBuilder()
-				.WithTcpServer(mqttHost, 1883)
-				.WithTls(new MqttClientOptionsBuilderTlsParameters
-				{
-					UseTls = true,
-					AllowUntrustedCertificates = true,
-					IgnoreCertificateChainErrors = true,
-					IgnoreCertificateRevocationErrors = true
-				})
-				.WithCredentials(mqttUsername, mqttPassword)
-				.WithClientId(Guid.NewGuid().ToString())
-				.Build();
+							.WithTcpServer(mqttHost, mqttPort)
+							.WithTls(new MqttClientOptionsBuilderTlsParameters
+							{
+								UseTls = true,
+								AllowUntrustedCertificates = true,
+								IgnoreCertificateChainErrors = true,
+								IgnoreCertificateRevocationErrors = true
+							})
+							.WithCredentials(mqttUsername, mqttPassword)
+							.WithCleanSession()
+							.WithClientId(Guid.NewGuid().ToString())
+							.Build();
 
 			var client = mqttFactory.CreateMqttClient();
 
@@ -145,7 +148,7 @@ namespace Masarin.IoT.Sensor
 
             client.UseApplicationMessageReceivedHandler( e =>
             {
-                try
+				try
                 {
                     ParseMessagePayload(DateTime.Now.ToUniversalTime(), e.ApplicationMessage.Topic, e.ApplicationMessage.Payload, decoders);
                 }
