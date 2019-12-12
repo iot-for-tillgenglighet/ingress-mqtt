@@ -1,0 +1,13 @@
+notifications:
+  email: false
+
+language: csharp
+
+services:
+  - docker
+
+before_install:
+  - echo "$DOCKER_PASSWORD" | docker login docker.pkg.github.com -u "$DOCKER_USERNAME" --password-stdin
+  - docker build -f Masarin.IoT.Sensor/Dockerfile -t github.com/iot-for-tillgenglighet/ingress-mqtt ./Masarin.IoT.Sensor
+  - docker tag github.com/iot-for-tillgenglighet/ingress-mqtt docker.pkg.github.com/iot-for-tillgenglighet/ingress-mqtt/ingress-mqtt:$TRAVIS_COMMIT
+  - docker push docker.pkg.github.com/iot-for-tillgenglighet/ingress-mqtt/ingress-mqtt:$TRAVIS_COMMIT
