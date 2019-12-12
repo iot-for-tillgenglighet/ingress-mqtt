@@ -88,6 +88,12 @@ namespace Masarin.IoT.Sensor
         static bool itIsNotTimeToShutDown = true;
         static EventWaitHandle terminationEvent = new EventWaitHandle(false, EventResetMode.AutoReset);
 
+        static string GetEnvVariableOrDefault(string variable, string fallback)
+        {
+            string value = Environment.GetEnvironmentVariable(variable);
+            return string.IsNullOrEmpty(value) ? fallback : value;
+        }
+
         static void Main(string[] args)
         {
             IMessageQueue messageQueue = new LoggingMQWrapper();
@@ -121,12 +127,12 @@ namespace Masarin.IoT.Sensor
             var mqttUsername = Environment.GetEnvironmentVariable("MQTT_USER");
             var mqttPassword = Environment.GetEnvironmentVariable("MQTT_PASSWORD");
             var mqttHost = Environment.GetEnvironmentVariable("MQTT_HOST");
-			var mqttPort = Convert.ToInt32(Environment.GetEnvironmentVariable("MQTT_PORT"));
-            var mqttTopic = Environment.GetEnvironmentVariable("MQTT_TOPIC");
+            var mqttPort = Convert.ToInt32(GetEnvVariableOrDefault("MQTT_PORT", "1883"));
+            var mqttTopic = GetEnvVariableOrDefault("MQTT_TOPIC", "#");
 
-			var builder = new MqttClientOptionsBuilder()
-							.WithClientId(Guid.NewGuid().ToString())
-							.WithTcpServer(mqttHost, mqttPort);
+            var builder = new MqttClientOptionsBuilder()
+                            .WithClientId(Guid.NewGuid().ToString())
+                            .WithTcpServer(mqttHost, mqttPort);
 
 			if (mqttUsername != null) {
 				builder = builder.WithTls(new MqttClientOptionsBuilderTlsParameters
