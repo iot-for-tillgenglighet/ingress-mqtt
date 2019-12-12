@@ -124,9 +124,12 @@ namespace Masarin.IoT.Sensor
 			var mqttPort = Convert.ToInt32(Environment.GetEnvironmentVariable("MQTT_PORT"));
             var mqttTopic = Environment.GetEnvironmentVariable("MQTT_TOPIC");
 
-			var options = new MqttClientOptionsBuilder()
-							.WithTcpServer(mqttHost, mqttPort)
-							.WithTls(new MqttClientOptionsBuilderTlsParameters
+			var builder = new MqttClientOptionsBuilder()
+							.WithClientId(Guid.NewGuid().ToString())
+							.WithTcpServer(mqttHost, mqttPort);
+
+			if (mqttUsername != null) {
+				builder = builder.WithTls(new MqttClientOptionsBuilderTlsParameters
 							{
 								UseTls = true,
 								AllowUntrustedCertificates = true,
@@ -134,9 +137,10 @@ namespace Masarin.IoT.Sensor
 								IgnoreCertificateRevocationErrors = true
 							})
 							.WithCredentials(mqttUsername, mqttPassword)
-							.WithCleanSession()
-							.WithClientId(Guid.NewGuid().ToString())
-							.Build();
+							.WithCleanSession();
+            }
+
+			var options = builder.Build();
 
 			var client = mqttFactory.CreateMqttClient();
 
