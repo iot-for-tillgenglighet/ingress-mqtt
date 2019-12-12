@@ -122,7 +122,7 @@ namespace Masarin.IoT.Sensor
             var mqttPassword = Environment.GetEnvironmentVariable("MQTT_PASSWORD");
             var mqttHost = Environment.GetEnvironmentVariable("MQTT_HOST");
 			var mqttPort = Convert.ToInt32(Environment.GetEnvironmentVariable("MQTT_PORT"));
-
+            var mqttTopic = Environment.GetEnvironmentVariable("MQTT_TOPIC");
 
 			var options = new MqttClientOptionsBuilder()
 							.WithTcpServer(mqttHost, mqttPort)
@@ -142,8 +142,8 @@ namespace Masarin.IoT.Sensor
 
 			client.UseConnectedHandler( async (e) =>
             {
-                Console.WriteLine("Connected! Subscribing to root topic ...");
-                await client.SubscribeAsync(new TopicFilterBuilder().WithTopic("#").Build());
+                Console.WriteLine("Connected! Subscribing to topic " + mqttTopic + " ...");
+                await client.SubscribeAsync(new TopicFilterBuilder().WithTopic(mqttTopic).Build());
             });
 
             client.UseApplicationMessageReceivedHandler( e =>
