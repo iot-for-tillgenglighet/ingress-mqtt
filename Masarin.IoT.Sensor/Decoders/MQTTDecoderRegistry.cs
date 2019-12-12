@@ -31,7 +31,7 @@
             {
                 return _avlDecoder;
             }
-            else if (node.StartsWith("11994117876243064"))
+            else if (node.StartsWith("10a52aaa8"))
             {
                 return _snowdepthDecoder;
             }

@@ -1,12 +1,18 @@
 ﻿
 using Masarin.IoT.Sensor.Messages;
+using Newtonsoft.Json;
 using System;
+using System.Buffers.Binary;
+using System.Text;
 
 namespace Masarin.IoT.Sensor
 {
 	class MQTTDecoderSnowdepth : MQTTDecoder
     {
-        private const string UplinkPort1Topic = "1/payload";
+		class SnowdepthPayloadData
+		{
+			public string Data {get; set; }
+		}
 
         private readonly IMessageQueue _messageQueue = null;
 
@@ -17,114 +23,115 @@ namespace Masarin.IoT.Sensor
 
         public override void Decode(string timestamp, string device, string topic, byte[] payload)
         {
-            if (topic == UplinkPort1Topic)
-            {
-                ReadOnlySpan<byte> span = payload;
-                /*
-                    uint8_t   Battery [%]
-                    uint16_t  raw Distance [mm]
-                    uint16_t  Angle [deg]
-                    unit16_t  Vertical distance [mm] 
-                    unit16_t  Snow depth [mm]
-                    unit16_t  Laser signal strength [0-400] (lower is better) 
-                    uint8_t   Laser sensor status
-                    int16_t   Temperature [°C]F
-                    unit8_t   Humidity [%]
-                    unit32_t  Pressure [Pa]
+			string json = Encoding.UTF8.GetString(payload);
+			SnowdepthPayloadData data = JsonConvert.DeserializeObject<SnowdepthPayloadData>(json);
+			payload = System.Convert.FromBase64String(data.Data);
 
-                    DEVEUI:s
-                    1199411787624306471 Stöde 62.4081681,16.5687632
-                    1199411787624306472 Matfors 62.348364,17.016056
-                    1199411787624306473 Njurunda 62.310744,17.3533887
-                    1199411787624306480 Sundsvall 62.392035,17.2843186
-                    1199411787624306481 Alnö 62.423001,17.4263873
-                    1199411787624306482 Sidsjö 62.37479,17.2680887
-                    1199411787624306483 Granloholm 62.4104911,17.264459
-                    1199411787624306484 Kovland 62.467477,17.1440723
-                    1199411787624306485 Fagerdalsparken 62.381802,17.2817077
-                    1199411787624306486 Finsta 62.462363,17.3451197
-                */
-                double latitude = 1.348364;
-                double longitude = 1.016056;
+			string deviceInHex = device;
+			device = Int64.Parse(device, System.Globalization.NumberStyles.HexNumber).ToString();
 
-               
+			ReadOnlySpan<byte> span = payload;
+			/*
+				uint8_t   Battery [%]
+				uint16_t  raw Distance [mm]
+				uint16_t  Angle [deg]
+				unit16_t  Vertical distance [mm] 
+				unit16_t  Snow depth [mm]
+				unit16_t  Laser signal strength [0-400] (lower is better) 
+				uint8_t   Laser sensor status
+				int16_t   Temperature [°C]F
+				unit8_t   Humidity [%]
+				unit32_t  Pressure [Pa]
 
-  
-                if (device == "1199411787624306471")
-                {
-                    latitude = 62.4081681;
-                    longitude = 16.5687632;
-                }
-                else if (device == "1199411787624306472")
-                {
-                    latitude = 62.348364;
-                    longitude = 17.016056;
-                }
-                else if (device == "1199411787624306473")
-                {
-                    latitude = 62.310744;
-                    longitude = 17.3533887;
-                }
-                else if (device == "1199411787624306480")
-                {
-                    latitude = 62.392035;
-                    longitude = 17.2843186;
-                }
-                else if (device == "1199411787624306481")
-                {
-                    latitude = 62.423001;
-                    longitude = 17.4263873;
-                }
-                else if (device == "1199411787624306483")
-                {
-                    latitude = 62.4104911;
-                    longitude = 17.264459;
-                }
-                else if (device == "1199411787624306482")
-                {
-                    latitude = 62.37479;
-                    longitude = 17.2680887;
-                }
-                else if (device == "1199411787624306484")
-                {
-                    latitude = 62.467477;
-                    longitude = 17.1440723;
-                }
-                else if (device == "1199411787624306485")
-                {
-                    latitude = 62.381802;
-                    longitude = 17.2817077;
-                }
-                else if (device == "1199411787624306486")
-                {
-                    latitude = 62.462363;
-                    longitude = 17.3451197;
-                }
-                
+				DEVEUI:s
+				1199411787624306471 Stöde 62.4081681,16.5687632
+				1199411787624306472 Matfors 62.348364,17.016056
+				1199411787624306473 Njurunda 62.310744,17.3533887
+				1199411787624306480 Sundsvall 62.392035,17.2843186
+				1199411787624306481 Alnö 62.423001,17.4263873
+				1199411787624306482 Sidsjö 62.37479,17.2680887
+				1199411787624306483 Granloholm 62.4104911,17.264459
+				1199411787624306484 Kovland 62.467477,17.1440723
+				1199411787624306485 Fagerdalsparken 62.381802,17.2817077
+				1199411787624306486 Finsta 62.462363,17.3451197
+			*/
+			double latitude = 1.348364;
+			double longitude = 1.016056;
 
+			if (device == "1199411787624306471")
+			{
+				latitude = 62.4081681;
+				longitude = 16.5687632;
+			}
+			else if (device == "1199411787624306472")
+			{
+				latitude = 62.348364;
+				longitude = 17.016056;
+			}
+			else if (device == "1199411787624306473")
+			{
+				latitude = 62.310744;
+				longitude = 17.3533887;
+			}
+			else if (device == "1199411787624306480")
+			{
+				latitude = 62.392035;
+				longitude = 17.2843186;
+			}
+			else if (device == "1199411787624306481")
+			{
+				latitude = 62.423001;
+				longitude = 17.4263873;
+			}
+			else if (device == "1199411787624306483")
+			{
+				latitude = 62.4104911;
+				longitude = 17.264459;
+			}
+			else if (device == "1199411787624306482")
+			{
+				latitude = 62.37479;
+				longitude = 17.2680887;
+			}
+			else if (device == "1199411787624306484")
+			{
+				latitude = 62.467477;
+				longitude = 17.1440723;
+			}
+			else if (device == "1199411787624306485")
+			{
+				latitude = 62.381802;
+				longitude = 17.2817077;
+			}
+			else if (device == "1199411787624306486")
+			{
+				latitude = 62.462363;
+				longitude = 17.3451197;
+			}
 
-                IoTHubMessageOrigin origin = new IoTHubMessageOrigin(device, latitude, longitude);
+			// TODO: We need to decide on the device names. Should we use the name from the LoRa app server?
+			device = "snow_" + deviceInHex;
 
-                int battery = payload[0];  
-                IoTHubMessageOrigin originWoPosition = new IoTHubMessageOrigin(device);
-                _messageQueue.PostMessage(new SensorStatusMessage(originWoPosition, timestamp, 1100+battery*5));
-                
-                int snowdepth = payload[7] << 8 | payload[8];
-                IoTHubMessageOrigin originWoDevice = new IoTHubMessageOrigin(latitude, longitude);
-                _messageQueue.PostMessage(new TelemetrySnowdepth(originWoDevice, timestamp, snowdepth));
+			IoTHubMessageOrigin origin = new IoTHubMessageOrigin(device, latitude, longitude);
 
-                int temperature = ((payload[12] << 8 | payload[13]) - 100) / 10;
-                originWoDevice = new IoTHubMessageOrigin(latitude, longitude);
-                _messageQueue.PostMessage(new TelemetryTemperature(originWoDevice, timestamp, temperature));
+			int battery = payload[0];
+			battery = (battery * 5) + 1100;
+			Console.WriteLine($"Reported battery voltage {battery} seems unreasonable. Ignoring ...");
+			//_messageQueue.PostMessage(new SensorStatusMessage(origin, timestamp, battery));
+			
+			double snowdepth = BinaryPrimitives.ReadUInt16BigEndian(span.Slice(start: 7, length: 2));
+			_messageQueue.PostMessage(new TelemetrySnowdepth(origin, timestamp, snowdepth / 10));
 
-                int humidity = payload[14];
-                originWoDevice = new IoTHubMessageOrigin(latitude, longitude);
-                _messageQueue.PostMessage(new TelemetryHumidity(originWoDevice, timestamp, humidity));
+			double temperature = BinaryPrimitives.ReadUInt16BigEndian(span.Slice(start: 12, length: 2));
+			temperature = (temperature - 100) / 10;
+			Console.WriteLine($"Reported temperature {temperature} seems unreasonable. Ignoring ...");
+			//_messageQueue.PostMessage(new TelemetryTemperature(origin, timestamp, temperature));
 
-                int pressure = (payload[15] << 24 | payload[16] << 16 | payload[17] << 8 | payload[18]);
-                originWoDevice = new IoTHubMessageOrigin(latitude, longitude);
-                _messageQueue.PostMessage(new TelemetryPressure(originWoDevice, timestamp, pressure));
-            }
-        }
+			int humidity = payload[14];
+			_messageQueue.PostMessage(new TelemetryHumidity(origin, timestamp, humidity));
+
+			double pressure = BinaryPrimitives.ReadUInt32BigEndian(span.Slice(start: 15, length: 4));
+			_messageQueue.PostMessage(new TelemetryPressure(origin, timestamp, (int) pressure));
+		}
     }
 }

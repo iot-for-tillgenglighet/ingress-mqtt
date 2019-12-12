@@ -250,9 +250,9 @@ namespace Masarin.IoT.Sensor
             var logstring = $"{timestamp}\t{node}\t{path}\t{hex}";
             Console.WriteLine(logstring);
 
-            if (node.StartsWith("node_") && node.Length > 5)
+            if (node == "application" && path.StartsWith("5/device/") && path.EndsWith("/rx"))
             {
-                node = node.Substring(5);
+                node = path.Substring(9, path.Length - 12);
             }
 
             IMQTTDecoder decoder = decoders.GetDecoderForNode(node, path);
