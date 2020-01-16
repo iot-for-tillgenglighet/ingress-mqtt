@@ -97,6 +97,7 @@ namespace Masarin.IoT.Sensor
         static void Main(string[] args)
         {
             IMessageQueue messageQueue = new LoggingMQWrapper();
+            bool debugEnvironment = false;
 
             try
             {
@@ -111,11 +112,19 @@ namespace Masarin.IoT.Sensor
                 {
                     Console.WriteLine($"Connecting to RabbitMQ host {rmqFactory.HostName} as {rmqFactory.UserName} ...");
                     messageQueue = new RabbitMQWrapper(rmqFactory.CreateConnection());
+                } 
+                else 
+                {
+                    debugEnvironment = true;
                 }
             }
             catch(Exception e)
             {
                 Console.WriteLine($"RabbitMQ Exception: {e.Message}");
+                if(debugEnvironment == false)
+                {
+                    System.Environment.Exit(1);
+                }
             }
 
             MQTTDecoderRegistry decoders = new MQTTDecoderRegistry(messageQueue);
