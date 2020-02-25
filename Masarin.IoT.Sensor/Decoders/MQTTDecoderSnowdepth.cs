@@ -117,10 +117,17 @@ namespace Masarin.IoT.Sensor
             double volts = payload[0];
             volts = Math.Round(3 * ((volts * 0.005) + 1.1), 3);
             _messageQueue.PostMessage(new SensorStatusMessage(origin, timestamp, volts));
-            
-            double snowdepth = BinaryPrimitives.ReadUInt16BigEndian(span.Slice(start: 7, length: 2));
-            snowdepth = Math.Round(snowdepth / 10.0, 1);
-            _messageQueue.PostMessage(new TelemetrySnowdepth(origin, timestamp, snowdepth));
+
+            const byte sensorStatusIsOK = 0;
+            if (payload[11] == sensorStatusIsOK)
+            {
+                double snowdepth = BinaryPrimitives.ReadUInt16BigEndian(span.Slice(start: 7, length: 2));
+                snowdepth = Math.Round(snowdepth / 10.0, 1);
+                _messageQueue.PostMessage(new TelemetrySnowdepth(origin, timestamp, snowdepth));
+            }
+            else {
+                Console.WriteLine($"Ignoring snowdepth reading from {device}. Sensor is not OK.");
+            }
 
             double temperature = BinaryPrimitives.ReadUInt16BigEndian(span.Slice(start: 12, length: 2));
             temperature = Math.Round((temperature / 10.0) - 100.0, 2);
