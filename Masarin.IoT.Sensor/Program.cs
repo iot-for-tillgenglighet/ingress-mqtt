@@ -144,13 +144,18 @@ namespace Masarin.IoT.Sensor
                             .WithTcpServer(mqttHost, mqttPort);
 
 			if (mqttUsername != null) {
-				builder = builder.WithTls(new MqttClientOptionsBuilderTlsParameters
-							{
-								UseTls = true,
-								AllowUntrustedCertificates = true,
-								IgnoreCertificateChainErrors = true,
-								IgnoreCertificateRevocationErrors = true
-							})
+                var useTls = (Convert.ToBoolean(GetEnvVariableOrDefault("MQTT_TLS_DISABLED", "false")) == false);
+                if (useTls) {
+                    builder = builder.WithTls(new MqttClientOptionsBuilderTlsParameters
+                    {
+                        UseTls = true,
+                        AllowUntrustedCertificates = true,
+                        IgnoreCertificateChainErrors = true,
+                        IgnoreCertificateRevocationErrors = true
+                    });
+                }
+
+				builder = builder
 							.WithCredentials(mqttUsername, mqttPassword)
 							.WithCleanSession();
             }
@@ -268,6 +273,10 @@ namespace Masarin.IoT.Sensor
             if (node == "application" && path.StartsWith("5/device/") && path.EndsWith("/rx"))
             {
                 node = path.Substring(9, path.Length - 12);
+            }
+            else if (node.StartsWith("node_"))
+            {
+                node = node.Substring(5);
             }
 
             IMQTTDecoder decoder = decoders.GetDecoderForNode(node, path);
