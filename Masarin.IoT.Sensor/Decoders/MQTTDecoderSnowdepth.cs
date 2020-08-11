@@ -121,10 +121,17 @@ namespace Masarin.IoT.Sensor
             const byte sensorStatusIsOK = 0;
             if (payload[11] == sensorStatusIsOK)
             {
-                double snowdepth = BinaryPrimitives.ReadUInt16BigEndian(span.Slice(start: 7, length: 2));
-                snowdepth = Math.Round(snowdepth / 10.0, 1);
-                //_messageQueue.PostMessage(new TelemetrySnowdepth(origin, timestamp, snowdepth));
-                Console.WriteLine($"Snowdepth readings are disabled.");
+                DateTime currentDate = DateTime.Now;
+                if (currentDate.Month < 5 || currentDate.Month > 10)
+                {
+                    double snowdepth = BinaryPrimitives.ReadUInt16BigEndian(span.Slice(start: 7, length: 2));
+                    snowdepth = Math.Round(snowdepth / 10.0, 1);
+                    _messageQueue.PostMessage(new TelemetrySnowdepth(origin, timestamp, snowdepth));
+                }
+                else
+                {
+                    Console.WriteLine($"Snowdepth readings are disabled.");
+                }
             }
             else {
                 Console.WriteLine($"Ignoring snowdepth reading from {device}. Sensor is not OK.");
