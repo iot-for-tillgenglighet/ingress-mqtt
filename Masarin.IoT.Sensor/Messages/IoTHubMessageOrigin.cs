@@ -1,6 +1,6 @@
 ﻿namespace Masarin.IoT.Sensor
 {
-	class IoTHubMessageOrigin
+	public class IoTHubMessageOrigin
     {
         public string Device { get; }
         public double? Latitude { get; }
