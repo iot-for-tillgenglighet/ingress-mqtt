@@ -94,6 +94,17 @@ namespace Masarin.IoT.Sensor
             return string.IsNullOrEmpty(value) ? fallback : value;
         }
 
+        static bool IsEnvVariableSetToValue(string variable, string checkedValue)
+        {
+            string value = Environment.GetEnvironmentVariable(variable);
+            return String.Equals(value, checkedValue, StringComparison.Ordinal);
+        }
+
+        static bool IsTlsEnabled()
+        {
+            return IsEnvVariableSetToValue("MQTT_TLS_DISABLED", "true") == false;
+        }
+
         static void Main(string[] args)
         {
             IMessageQueue messageQueue = new LoggingMQWrapper();
@@ -144,8 +155,7 @@ namespace Masarin.IoT.Sensor
                             .WithTcpServer(mqttHost, mqttPort);
 
 			if (mqttUsername != null) {
-                var useTls = (Convert.ToBoolean(GetEnvVariableOrDefault("MQTT_TLS_DISABLED", "false")) == false);
-                if (useTls) {
+                if (IsTlsEnabled()) {
                     builder = builder.WithTls(new MqttClientOptionsBuilderTlsParameters
                     {
                         UseTls = true,
@@ -277,6 +287,13 @@ namespace Masarin.IoT.Sensor
             else if (node.StartsWith("node_"))
             {
                 node = node.Substring(5);
+            }
+            else if (node == "iothub" && path == "out")
+            {
+                string json = Encoding.UTF8.GetString(payload);
+                var data = JsonConvert.DeserializeObject<dynamic>(json);
+                var devEUI = data.deviceName;
+                Console.WriteLine($"Got message from devEUI {devEUI}.");
             }
 
             IMQTTDecoder decoder = decoders.GetDecoderForNode(node, path);
