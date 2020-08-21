@@ -61,6 +61,20 @@ namespace Masarin.IoT.Sensor.Tests
             mockMQ.Verify(foo => foo.PostMessage(It.IsAny<TelemetrySnowdepth>()), Times.Never());
         }
 
+        [Fact]
+        public void IfSnowdepth_ReceivedMatchesSent()
+        {
+            var mockMQ = new Mock<IMessageQueue>();
+            var decoder = new MQTTDecoderSnowdepth(mockMQ.Object);
+            byte[] bytes = { 0, 1, 2, 3, 4, 5, 6, 1, 244, 9, 10, 0, 12, 13, 14, 15, 16, 17, 18 };
+
+            decoder.Decode("2020-11-19T14:22:36Z", "ff", "", CreateTestPayload(bytes));
+
+            mockMQ.Verify(ms => ms.PostMessage( 
+                It.Is<TelemetrySnowdepth>(mo => mo.Depth == 50)
+            ), Times.Once());
+        }
+
         private static byte[] CreateTestPayload(byte[] bytes)
         {
             var data = Convert.ToBase64String(bytes);
