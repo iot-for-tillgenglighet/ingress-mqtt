@@ -7,7 +7,7 @@ using System.Text;
 
 namespace Masarin.IoT.Sensor
 {
-    class MQTTDecoderSnowdepth : MQTTDecoder
+    public class MQTTDecoderSnowdepth : MQTTDecoder
     {
         class SnowdepthPayloadData
         {
@@ -121,8 +121,8 @@ namespace Masarin.IoT.Sensor
             const byte sensorStatusIsOK = 0;
             if (payload[11] == sensorStatusIsOK)
             {
-                DateTime currentDate = DateTime.Now;
-                if (currentDate.Month < 5 || currentDate.Month > 10)
+                DateTime dt = DateTime.ParseExact(timestamp, "yyyy-MM-ddTHH:mm:ssZ", null);
+                if (dt.Month < 5 || dt.Month > 10)
                 {
                     double snowdepth = BinaryPrimitives.ReadUInt16BigEndian(span.Slice(start: 7, length: 2));
                     snowdepth = Math.Round(snowdepth / 10.0, 1);

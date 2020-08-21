@@ -1,6 +1,6 @@
 ﻿namespace Masarin.IoT.Sensor
 {
-	class TelemetrySnowdepth : IoTHubMessage
+	public class TelemetrySnowdepth : IoTHubMessage
     {
         public double Depth { get; }
 

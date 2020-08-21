@@ -2,7 +2,7 @@
 
 namespace Masarin.IoT.Sensor
 {
-	abstract class MQTTDecoder : IMQTTDecoder
+	public abstract class MQTTDecoder : IMQTTDecoder
     {
 
         public MQTTDecoder()

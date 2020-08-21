@@ -2,7 +2,7 @@
 
 namespace Masarin.IoT.Sensor
 {
-	class IoTHubMessage : IIoTHubMessage
+	public class IoTHubMessage : IIoTHubMessage
     {
         [JsonIgnore]
         public string Topic { get; }
