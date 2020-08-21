@@ -16,6 +16,17 @@ namespace Masarin.IoT.Sensor
             _messageQueue = messageQueue;
         }
 
+        private double ConvertNO2(double nonCorrectedNO2, string device)
+        {
+            double correction = 0.0; // TODO: Device dependent correction value
+            double no2 = Math.Round(
+                Math.Max(nonCorrectedNO2 / 100.0 - 100.0 + correction, 0),
+                2);
+
+            Console.WriteLine($"Converted NO2 value {nonCorrectedNO2} to {no2} ...");
+            return no2;
+        }
+
         private double ConvertTemperature(double temp, string device)
         {
             if (device != "8121069065166743827")
@@ -110,7 +121,7 @@ namespace Masarin.IoT.Sensor
             {
                 var no2StartIndex = (device != "8121069065166743827") ? 10 : 8;
                 double no2 = BinaryPrimitives.ReadUInt16LittleEndian(span.Slice(start: no2StartIndex, length: 2));
-                _messageQueue.PostMessage(new TelemetryNO2(origin, timestamp, no2 / 10.0));
+                _messageQueue.PostMessage(new TelemetryNO2(origin, timestamp, ConvertNO2(no2, device)));
             }
         }
     }
