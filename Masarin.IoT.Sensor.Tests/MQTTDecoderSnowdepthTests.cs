@@ -36,7 +36,7 @@ namespace Masarin.IoT.Sensor.Tests
         }
 
         [Fact]
-        public void IfDate_IsWrongFormat()
+        public void IfDate_IsWrongFormatThenExceptionShouldBeThrown()
         {
             var mockMQ = new Mock<IMessageQueue>();
             var decoder = new MQTTDecoderSnowdepth(mockMQ.Object);
@@ -47,7 +47,7 @@ namespace Masarin.IoT.Sensor.Tests
         }
 
         [Fact]
-        public void IfSensor_IsNotOkay()
+        public void IfSensor_IsNotOkaySnowdepthShouldNotSend()
         {   
             var mockMQ = new Mock<IMessageQueue>();
             var decoder = new MQTTDecoderSnowdepth(mockMQ.Object);
@@ -62,7 +62,7 @@ namespace Masarin.IoT.Sensor.Tests
         }
 
         [Fact]
-        public void IfSnowdepth_ReceivedMatchesSent()
+        public void IfSnowdepth_ReceivedMatchesExpectedSentOutcome()
         {
             var mockMQ = new Mock<IMessageQueue>();
             var decoder = new MQTTDecoderSnowdepth(mockMQ.Object);
