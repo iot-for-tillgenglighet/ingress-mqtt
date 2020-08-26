@@ -288,13 +288,6 @@ namespace Masarin.IoT.Sensor
             {
                 node = node.Substring(5);
             }
-            else if (node == "iothub" && path == "out")
-            {
-                string json = Encoding.UTF8.GetString(payload);
-                var data = JsonConvert.DeserializeObject<dynamic>(json);
-                var devEUI = data.deviceName;
-                Console.WriteLine($"Got message from devEUI {devEUI}.");
-            }
 
             IMQTTDecoder decoder = decoders.GetDecoderForNode(node, path);
             decoder.Decode(timestamp, node, path, payload);

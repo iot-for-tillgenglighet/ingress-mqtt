@@ -7,6 +7,7 @@
         private readonly MQTTDecoderIcomit _avlDecoder;
         private readonly MQTTDecoderSnowdepth _snowdepthDecoder;
         private readonly MQTTDecoderAirQuality _airqualityDecoder;
+        private readonly MQTTDecoderLoRaWAN _loraWANDecoder;
         private readonly MQTTNullDecoder _nullDecoder;
 
         public MQTTDecoderRegistry(IMessageQueue messageQueue)
@@ -16,6 +17,7 @@
             _weatherDecoder = new MQTTDecoderAurorasWS(messageQueue);
             _snowdepthDecoder = new MQTTDecoderSnowdepth(messageQueue);
             _airqualityDecoder = new MQTTDecoderAirQuality(messageQueue);
+            _loraWANDecoder = new MQTTDecoderLoRaWAN("ignored");
             _nullDecoder = new MQTTNullDecoder();
         }
 
@@ -40,6 +42,10 @@
             else if (node.StartsWith("8121069065"))
             {
                 return _airqualityDecoder;
+            }
+            else if (node == "iothub")
+            {
+                return _loraWANDecoder;
             }
             else
             {
