@@ -3,7 +3,7 @@ An ingress service that connects to MQTT endpoints and pulls data into the platf
 
 # Building and tagging with Docker
 
-`docker build -f Masarin.IoT.Sensor/Dockerfile -t iot-for-tillgenglighet/ingress-mqtt:latest ./Masarin.IoT.Sensor`
+`docker build -f Dockerfile -t iot-for-tillgenglighet/ingress-mqtt:latest .`
 
 # Running locally with Docker
 
