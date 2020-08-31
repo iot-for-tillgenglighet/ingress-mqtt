@@ -4,35 +4,11 @@ using Newtonsoft.Json.Serialization;
 using System;
 using System.Buffers.Binary;
 using System.Text;
+using Fiware;
 
 namespace Masarin.IoT.Sensor
 
 {
-    public class FiwareValueProperty 
-    {
-        public string Type { get; }
-        public string Value { get; }
-
-        public FiwareValueProperty(string value)
-        {
-            Type = "Property";
-            Value = value;
-        }
-    }
-    public class FiwareDeviceMessage
-    {
-        public string Id { get; }
-        public string Type { get; }
-        public FiwareValueProperty Value { get; }
-
-        public FiwareDeviceMessage(string id, string value)
-        {
-            Id = "urn:ngsi-ld:Device:" + id;
-            Type = "Device";
-            Value = new FiwareValueProperty(value);
-        }
-
-    }
     public class MQTTDecoderLoRaWAN : MQTTDecoder
     {
         public MQTTDecoderLoRaWAN(string ngsiContextBrokerURL)
@@ -56,7 +32,7 @@ namespace Masarin.IoT.Sensor
                     value = "off";
                 }
 
-                var message = new FiwareDeviceMessage(deviceName, value);
+                var message = new Fiware.DeviceMessage(deviceName, value);
 
                 var settings = new JsonSerializerSettings
                 {
