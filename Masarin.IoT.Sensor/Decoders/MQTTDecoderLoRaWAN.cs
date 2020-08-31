@@ -11,8 +11,10 @@ namespace Masarin.IoT.Sensor
 {
     public class MQTTDecoderLoRaWAN : MQTTDecoder
     {
-        public MQTTDecoderLoRaWAN(string ngsiContextBrokerURL)
+        private readonly IFiwareContextBroker _fiwareContextBroker = null;
+        public MQTTDecoderLoRaWAN(IFiwareContextBroker fiwareContextBroker)
         {
+            _fiwareContextBroker = fiwareContextBroker;
         }
 
         public override void Decode(string timestamp, string device, string topic, byte[] payload)
@@ -34,14 +36,7 @@ namespace Masarin.IoT.Sensor
 
                 var message = new Fiware.DeviceMessage(deviceName, value);
 
-                var settings = new JsonSerializerSettings
-                {
-                    ContractResolver = new CamelCasePropertyNamesContractResolver(),
-                    NullValueHandling = NullValueHandling.Ignore
-                };
-
-                json = JsonConvert.SerializeObject(message, settings);
-                Console.WriteLine(json);
+                _fiwareContextBroker.PostMessage(message);
             }
 
             Console.WriteLine($"Got message from deviceName {deviceName}: {json}");

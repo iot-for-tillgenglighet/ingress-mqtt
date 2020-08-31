@@ -12,6 +12,7 @@ using System;
 using System.Text;
 using System.Threading;
 using System.Threading.Tasks;
+using Fiware;
 
 namespace Masarin.IoT.Sensor
 {
@@ -138,7 +139,9 @@ namespace Masarin.IoT.Sensor
                 }
             }
 
-            MQTTDecoderRegistry decoders = new MQTTDecoderRegistry(messageQueue);
+            var fiwareContextBroker = new ContextBroker();
+
+            MQTTDecoderRegistry decoders = new MQTTDecoderRegistry(messageQueue, fiwareContextBroker);
 
             //TestParseData(decoders);
 

@@ -1,4 +1,5 @@
-﻿namespace Masarin.IoT.Sensor
+﻿using Fiware;
+namespace Masarin.IoT.Sensor
 {
 	class MQTTDecoderRegistry : IMQTTDecoderRegistry
     {
@@ -10,14 +11,14 @@
         private readonly MQTTDecoderLoRaWAN _loraWANDecoder;
         private readonly MQTTNullDecoder _nullDecoder;
 
-        public MQTTDecoderRegistry(IMessageQueue messageQueue)
+        public MQTTDecoderRegistry(IMessageQueue messageQueue, IFiwareContextBroker fiwareContextBroker)
         {
             _bicycleDecoder = new MQTTDecoderWinterCycle(messageQueue);
             _avlDecoder = new MQTTDecoderIcomit(messageQueue);
             _weatherDecoder = new MQTTDecoderAurorasWS(messageQueue);
             _snowdepthDecoder = new MQTTDecoderSnowdepth(messageQueue);
             _airqualityDecoder = new MQTTDecoderAirQuality(messageQueue);
-            _loraWANDecoder = new MQTTDecoderLoRaWAN("ignored");
+            _loraWANDecoder = new MQTTDecoderLoRaWAN(fiwareContextBroker);
             _nullDecoder = new MQTTNullDecoder();
         }
 
