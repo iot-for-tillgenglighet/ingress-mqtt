@@ -1,14 +1,18 @@
 using Newtonsoft.Json;
 using Newtonsoft.Json.Serialization;
 using System;
+using System.Net.Http;
+using System.Net.Http.Headers;
+using System.Text;
 
 namespace Fiware
 {
     public class ContextBrokerProxy : IContextBrokerProxy
     {
+        private readonly HttpClient _client = null;
         public ContextBrokerProxy()
         {
-
+            _client = new HttpClient();
         }
 
         public void PostMessage(DeviceMessage message)
@@ -20,7 +24,22 @@ namespace Fiware
             };
 
             var json = JsonConvert.SerializeObject(message, settings);
-            Console.WriteLine(json);
+            
+            var data = new StringContent(json, Encoding.UTF8, "application/json+ld");
+
+            var url = $"https://iotsundsvall.se/ngsi-ld/v1/entities/{message.Id}/attrs/";
+
+            Patch(_client, url, data);
+        }
+
+        private static void Patch(HttpClient client, string url, StringContent data)
+        {
+            var responseTask = client.PatchAsync(url, data);
+            var responseMessage = responseTask.GetAwaiter().GetResult();
+            if (!responseMessage.IsSuccessStatusCode)
+            {
+                throw new HttpRequestException("Failed to patch entity attributes.");
+            }
         }
     }
 }
