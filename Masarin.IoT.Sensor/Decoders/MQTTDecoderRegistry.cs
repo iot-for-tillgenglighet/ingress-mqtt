@@ -11,7 +11,7 @@ namespace Masarin.IoT.Sensor
         private readonly MQTTDecoderLoRaWAN _loraWANDecoder;
         private readonly MQTTNullDecoder _nullDecoder;
 
-        public MQTTDecoderRegistry(IMessageQueue messageQueue, IFiwareContextBroker fiwareContextBroker)
+        public MQTTDecoderRegistry(IMessageQueue messageQueue, IContextBrokerProxy fiwareContextBroker)
         {
             _bicycleDecoder = new MQTTDecoderWinterCycle(messageQueue);
             _avlDecoder = new MQTTDecoderIcomit(messageQueue);

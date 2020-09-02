@@ -12,7 +12,7 @@ namespace Masarin.IoT.Sensor.Tests
         [Fact]
         public void DecodeObject()
         {
-            var contextBroker = new Mock<IFiwareContextBroker>();
+            var contextBroker = new Mock<IContextBrokerProxy>();
             var decoder = new MQTTDecoderLoRaWAN(contextBroker.Object);
             var payload = "{\"deviceName\":\"sn-elt-livboj-02\",\"devEUI\":\"a81758fffe04d854\",\"data\":\"Bw4yDQA=\",\"object\":{\"present\":true}}";
 

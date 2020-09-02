@@ -139,7 +139,7 @@ namespace Masarin.IoT.Sensor
                 }
             }
 
-            var fiwareContextBroker = new ContextBroker();
+            var fiwareContextBroker = new ContextBrokerProxy();
 
             MQTTDecoderRegistry decoders = new MQTTDecoderRegistry(messageQueue, fiwareContextBroker);
 

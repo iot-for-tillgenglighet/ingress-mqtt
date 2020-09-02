@@ -4,9 +4,9 @@ using System;
 
 namespace Fiware
 {
-    public class ContextBroker : IFiwareContextBroker
+    public class ContextBrokerProxy : IContextBrokerProxy
     {
-        public ContextBroker()
+        public ContextBrokerProxy()
         {
 
         }

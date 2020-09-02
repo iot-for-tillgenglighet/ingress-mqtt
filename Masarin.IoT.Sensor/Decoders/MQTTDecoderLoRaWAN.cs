@@ -11,8 +11,8 @@ namespace Masarin.IoT.Sensor
 {
     public class MQTTDecoderLoRaWAN : MQTTDecoder
     {
-        private readonly IFiwareContextBroker _fiwareContextBroker = null;
-        public MQTTDecoderLoRaWAN(IFiwareContextBroker fiwareContextBroker)
+        private readonly IContextBrokerProxy _fiwareContextBroker = null;
+        public MQTTDecoderLoRaWAN(IContextBrokerProxy fiwareContextBroker)
         {
             _fiwareContextBroker = fiwareContextBroker;
         }

@@ -1,6 +1,6 @@
 namespace Fiware
 {
-    public interface IFiwareContextBroker
+    public interface IContextBrokerProxy
     {
         public void PostMessage(DeviceMessage message);
     } 
