@@ -1,4 +1,5 @@
-﻿using Fiware;
+using System.Text;
+using Fiware;
 namespace Masarin.IoT.Sensor
 {
 	class MQTTDecoderRegistry : IMQTTDecoderRegistry
@@ -20,6 +21,11 @@ namespace Masarin.IoT.Sensor
             _airqualityDecoder = new MQTTDecoderAirQuality(messageQueue);
             _loraWANDecoder = new MQTTDecoderLoRaWAN(fiwareContextBroker);
             _nullDecoder = new MQTTNullDecoder();
+    
+            // FULTEST
+            var payload = "{\"deviceName\":\"sn-elt-livboj-02\",\"devEUI\":\"a81758fffe04d854\",\"data\":\"Bw4yDQA=\",\"object\":{\"present\":true}}";
+            _loraWANDecoder.Decode("2020-08-26T07:11:31Z", "iothub", "out", Encoding.UTF8.GetBytes(payload));
+
         }
 
         public IMQTTDecoder GetDecoderForNode(string node, string path)

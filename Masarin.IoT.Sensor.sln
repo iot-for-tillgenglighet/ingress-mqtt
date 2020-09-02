@@ -1,9 +1,13 @@
 ﻿
 Microsoft Visual Studio Solution File, Format Version 12.00
-# Visual Studio 15
-VisualStudioVersion = 15.0.28307.168
+# Visual Studio Version 16
+VisualStudioVersion = 16.0.30317.65
 MinimumVisualStudioVersion = 10.0.40219.1
-Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "Masarin.IoT.Sensor", "Masarin.IoT.Sensor\Masarin.IoT.Sensor.csproj", "{E1E862F6-FB49-43D2-A981-5E2B3036E2FF}"
+Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "Masarin.IoT.Sensor", "Masarin.IoT.Sensor\Masarin.IoT.Sensor.csproj", "{E1E862F6-FB49-43D2-A981-5E2B3036E2FF}"
+EndProject
+Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "Masarin.IoT.Sensor.Tests", "Masarin.IoT.Sensor.Tests\Masarin.IoT.Sensor.Tests.csproj", "{04B766ED-75E9-4330-96BC-29047DBECB13}"
+EndProject
+Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "Masarin.IoT.Sensor.Service", "Masarin.IoT.Sensor.Service\Masarin.IoT.Sensor.Service.csproj", "{6E20B2DE-E165-48B7-ABFE-31038F42DA0B}"
 EndProject
 Global
 	GlobalSection(SolutionConfigurationPlatforms) = preSolution
@@ -15,6 +19,14 @@ Global
 		{E1E862F6-FB49-43D2-A981-5E2B3036E2FF}.Debug|Any CPU.Build.0 = Debug|Any CPU
 		{E1E862F6-FB49-43D2-A981-5E2B3036E2FF}.Release|Any CPU.ActiveCfg = Release|Any CPU
 		{E1E862F6-FB49-43D2-A981-5E2B3036E2FF}.Release|Any CPU.Build.0 = Release|Any CPU
+		{04B766ED-75E9-4330-96BC-29047DBECB13}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
+		{04B766ED-75E9-4330-96BC-29047DBECB13}.Debug|Any CPU.Build.0 = Debug|Any CPU
+		{04B766ED-75E9-4330-96BC-29047DBECB13}.Release|Any CPU.ActiveCfg = Release|Any CPU
+		{04B766ED-75E9-4330-96BC-29047DBECB13}.Release|Any CPU.Build.0 = Release|Any CPU
+		{6E20B2DE-E165-48B7-ABFE-31038F42DA0B}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
+		{6E20B2DE-E165-48B7-ABFE-31038F42DA0B}.Debug|Any CPU.Build.0 = Debug|Any CPU
+		{6E20B2DE-E165-48B7-ABFE-31038F42DA0B}.Release|Any CPU.ActiveCfg = Release|Any CPU
+		{6E20B2DE-E165-48B7-ABFE-31038F42DA0B}.Release|Any CPU.Build.0 = Release|Any CPU
 	EndGlobalSection
 	GlobalSection(SolutionProperties) = preSolution
 		HideSolutionNode = FALSE
