@@ -283,9 +283,9 @@ namespace Masarin.IoT.Sensor
             var logstring = $"{timestamp}\t{node}\t{path}\t{hex}";
             Console.WriteLine(logstring);
 
-            if (node == "application" && path.StartsWith("5/device/") && path.EndsWith("/rx"))
+            if (node == "application" && path.StartsWith("5/device/") && path.EndsWith("/event/up"))
             {
-                node = path.Substring(9, path.Length - 12);
+                node = path.Substring(9, path.Length - 18);
             }
             else if (node.StartsWith("node_"))
             {
