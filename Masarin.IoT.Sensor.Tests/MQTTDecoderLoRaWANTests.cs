@@ -32,5 +32,17 @@ namespace Masarin.IoT.Sensor.Tests
 
             contextBroker.Verify(foo => foo.PostMessage(It.Is<DeviceMessage>(mo => mo.Value.Value == "t%3D11")));
         }
+
+        [Fact]
+        public void TestThatDecoderHandlesNullObjectProperly()
+        {
+            var contextBroker = new Mock<IContextBrokerProxy>();
+            var decoder = new MQTTDecoderLoRaWAN(contextBroker.Object);
+            var payload = "{\"deviceName\":\"sk-elt-temp-01\",\"devEUI\":\"xxxxxxxxxxxxxxx\",\"data\":null,\"object\":{},\"tags\":{\"Location\":\"Sidsjobacken\"}}";
+
+            decoder.Decode("2020-10-07T15:46:45Z", "iothub", "out", Encoding.UTF8.GetBytes(payload));
+
+            contextBroker.Verify(foo => foo.PostMessage(It.IsAny<DeviceMessage>()), Times.Never());
+        }
     }    
 }
