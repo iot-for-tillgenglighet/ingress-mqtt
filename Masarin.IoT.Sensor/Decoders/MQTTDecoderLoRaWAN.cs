@@ -25,7 +25,7 @@ namespace Masarin.IoT.Sensor
             var obj = data["object"];
             var present = obj.present;
             
-            if (deviceName.Contains("livboj"))
+            if (deviceName.Contains("sn-elt-livboj-"))
             {
                 string value = "on";
 
@@ -37,11 +37,20 @@ namespace Masarin.IoT.Sensor
                 var message = new Fiware.DeviceMessage(deviceName, value);
 
                 _fiwareContextBroker.PostMessage(message);
+            } 
+            else if (deviceName.Contains("sk-elt-temp-"))
+            {
+                double value = obj.externalTemperature;
+
+                string stringValue = $"t%3D{value}";
+
+                var message = new Fiware.DeviceMessage(deviceName, stringValue);
+                
+                _fiwareContextBroker.PostMessage(message);
             }
 
             Console.WriteLine($"Got message from deviceName {deviceName}: {json}");
 
-            // TODO: forward device message to the NGSI Context Broker
         }
     }
 }
