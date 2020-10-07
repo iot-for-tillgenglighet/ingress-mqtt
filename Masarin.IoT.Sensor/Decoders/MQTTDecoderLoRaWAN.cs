@@ -23,34 +23,49 @@ namespace Masarin.IoT.Sensor
             var data = JsonConvert.DeserializeObject<dynamic>(json);
             var deviceName = Convert.ToString(data.deviceName);
             var obj = data["object"];
-            var present = obj.present;
             
             if (deviceName.Contains("sn-elt-livboj-"))
             {
-                string value = "on";
-
-                if (present == false)
+                if (obj.ContainsKey("present"))
                 {
-                    value = "off";
+                    var present = obj.present;
+                    string value = "on";
+
+                    if (present == false)
+                    {
+                        value = "off";
+                    }
+
+                    var message = new Fiware.DeviceMessage(deviceName, value);
+
+                    _fiwareContextBroker.PostMessage(message);
                 }
-
-                var message = new Fiware.DeviceMessage(deviceName, value);
-
-                _fiwareContextBroker.PostMessage(message);
+                else
+                {
+                    Console.WriteLine($"No \"present\" property in message from deviceName {deviceName}!: {json}");
+                    return;
+                }
             } 
             else if (deviceName.Contains("sk-elt-temp-"))
             {
-                double value = obj.externalTemperature;
+                if (obj.ContainsKey("externalTemperature"))
+                {
+                    double value = obj.externalTemperature;
 
-                string stringValue = $"t%3D{value}";
+                    string stringValue = $"t%3D{value}";
 
-                var message = new Fiware.DeviceMessage(deviceName, stringValue);
-                
-                _fiwareContextBroker.PostMessage(message);
+                    var message = new Fiware.DeviceMessage(deviceName, stringValue);
+
+                    _fiwareContextBroker.PostMessage(message);
+                }
+                else
+                {
+                    Console.WriteLine($"No \"externalTemperature\" property in message from deviceName {deviceName}!: {json}");
+                    return;
+                }
             }
 
             Console.WriteLine($"Got message from deviceName {deviceName}: {json}");
-
         }
     }
 }
