@@ -10,9 +10,12 @@ namespace Fiware
     public class ContextBrokerProxy : IContextBrokerProxy
     {
         private readonly HttpClient _client = null;
-        public ContextBrokerProxy()
+        private readonly string _contextBrokerURL = null;
+
+        public ContextBrokerProxy(string contextBrokerURL)
         {
             _client = new HttpClient();
+            _contextBrokerURL = contextBrokerURL;
         }
 
         public void PostMessage(DeviceMessage message)
@@ -27,7 +30,7 @@ namespace Fiware
             
             var data = new StringContent(json, Encoding.UTF8, "application/json+ld");
 
-            var url = $"https://iotsundsvall.se/ngsi-ld/v1/entities/{message.Id}/attrs/";
+            var url = $"{_contextBrokerURL}/ngsi-ld/v1/entities/{message.Id}/attrs/";
 
             Patch(_client, url, data);
         }
