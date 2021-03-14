@@ -21,7 +21,7 @@ namespace Masarin.IoT.Sensor
         {
             string json = Encoding.UTF8.GetString(payload);
             var data = JsonConvert.DeserializeObject<dynamic>(json);
-            var deviceName = Convert.ToString(data.deviceName);
+            var deviceName = "se:servanet:lora:" + Convert.ToString(data.deviceName);
             var obj = data["object"];
             
             if (deviceName.Contains("sn-elt-livboj-"))

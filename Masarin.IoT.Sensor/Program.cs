@@ -217,7 +217,7 @@ namespace Masarin.IoT.Sensor
                 }
             });
 
-            Console.WriteLine($"Connecting to MQTT host {mqttHost} as {mqttUsername} ...");
+            Console.WriteLine($"Connecting to MQTT host {mqttHost} ...");
             client.ConnectAsync(options, CancellationToken.None);
 
             while (itIsNotTimeToShutDown)
