@@ -9,6 +9,7 @@ namespace Masarin.IoT.Sensor
         private readonly MQTTDecoderSnowdepth _snowdepthDecoder;
         private readonly MQTTDecoderAirQuality _airqualityDecoder;
         private readonly MQTTDecoderLoRaWAN _loraWANDecoder;
+        private readonly MQTTDecoderGlassBreak _glassBreakDecoder;
         private readonly MQTTNullDecoder _nullDecoder;
 
         public MQTTDecoderRegistry(IMessageQueue messageQueue, IContextBrokerProxy fiwareContextBroker)
@@ -19,6 +20,7 @@ namespace Masarin.IoT.Sensor
             _snowdepthDecoder = new MQTTDecoderSnowdepth(messageQueue);
             _airqualityDecoder = new MQTTDecoderAirQuality(messageQueue);
             _loraWANDecoder = new MQTTDecoderLoRaWAN(fiwareContextBroker);
+            _glassBreakDecoder = new MQTTDecoderGlassBreak(messageQueue);
             _nullDecoder = new MQTTNullDecoder();
         }
 
@@ -35,6 +37,10 @@ namespace Masarin.IoT.Sensor
             else if (node == "icomit")
             {
                 return _avlDecoder;
+            }
+            else if (node.StartsWith("10a52aaa84c3574"))
+            {
+                return _glassBreakDecoder;
             }
             else if (node.StartsWith("10a52aaa8"))
             {
